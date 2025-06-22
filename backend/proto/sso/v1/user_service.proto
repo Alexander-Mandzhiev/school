@@ -1,0 +1,73 @@
+syntax = "proto3";
+
+package sso.user_v1;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+import "validate/validate.proto";
+
+option go_package = "sso.user_v1";
+
+service UserService {
+  rpc CreateUser(CreateUserRequest) returns (User);
+  rpc UpdateUser(UpdateUserRequest) returns (User);
+
+  rpc GetUser(GetUserRequest) returns (User);
+  rpc ListUsers(ListUsersRequest) returns (ListUsersResponse);
+
+  rpc HardDeleteUser(DeleteUserRequest) returns (google.protobuf.Empty);
+  rpc SoftDeleteUser(DeleteUserRequest) returns (google.protobuf.Empty);
+  rpc RestoreUser(DeleteUserRequest) returns (google.protobuf.Empty);
+}
+
+message User {
+  string id = 1;
+  int64 internal_id = 2;
+  string client_id = 3;
+  string email = 4;
+  string password_hash = 5;
+  string full_name = 6;
+  string phone = 7;
+  google.protobuf.Timestamp created_at = 8;
+  google.protobuf.Timestamp updated_at = 9;
+  google.protobuf.Timestamp deleted_at = 10;
+}
+
+message CreateUserRequest {
+  string client_id = 1;
+  string email = 2;
+  string password = 3;
+  string full_name = 4;
+  string phone = 5;
+}
+
+message GetUserRequest {
+  string id = 1;
+  string client_id = 2;
+}
+
+message UpdateUserRequest {
+  string id = 1;
+  string client_id = 2;
+  optional string email = 3;
+  optional string full_name = 4;
+  optional string phone = 5;
+}
+
+message DeleteUserRequest {
+  string id = 1;
+  string client_id = 2;
+}
+
+message ListUsersRequest {
+  string client_id = 1;
+  int64 page_size = 2;
+  int64 page_token = 3;
+  optional string filter = 4;
+  optional bool include_deleted = 5;
+}
+
+message ListUsersResponse {
+  repeated User users = 1;
+  int64 next_page_token = 2;
+}
