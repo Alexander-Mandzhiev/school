@@ -2,8 +2,9 @@
 -- +goose StatementBegin
 CREATE TABLE audit_actions (
     id SMALLSERIAL PRIMARY KEY,
-    code VARCHAR(50) UNIQUE NOT NULL CHECK (code <> ''),
-    description TEXT NOT NULL
+    code VARCHAR(50) UNIQUE NOT NULL,
+    description TEXT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 INSERT INTO audit_actions (code, description) VALUES

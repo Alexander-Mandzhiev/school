@@ -1,0 +1,5 @@
+.idea
+*.yaml
+.gitignore
+.env
+.node_modules

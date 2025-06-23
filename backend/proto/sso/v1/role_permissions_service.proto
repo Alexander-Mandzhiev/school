@@ -1,0 +1,88 @@
+syntax = "proto3";
+
+package sso.role_permissions_v1;
+
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "sso.role_permissions_v1";
+
+service RolePermissionsService {
+  // Добавление разрешения к роли
+  rpc AddPermissionToRole(AddPermissionRequest) returns (google.protobuf.Empty);
+  // Удаление разрешения из роли
+  rpc RemovePermissionFromRole(RemovePermissionRequest) returns (google.protobuf.Empty);
+  // Массовое обновление разрешений для роли
+  rpc UpdateRolePermissions(UpdateRolePermissionsRequest) returns (google.protobuf.Empty);
+  // Проверка наличия разрешения у роли
+  rpc CheckRolePermission(CheckRolePermissionRequest) returns (CheckRolePermissionResponse);
+  // Получение всех разрешений для роли
+  rpc GetRolePermissions(GetRolePermissionsRequest) returns (GetRolePermissionsResponse);
+  // Получение всех ролей, имеющих определенное разрешение
+  rpc GetRolesWithPermission(GetRolesWithPermissionRequest) returns (GetRolesWithPermissionResponse);
+}
+
+message AddPermissionRequest {
+  string role_id = 1;
+  string permission_id = 2;
+  string client_id = 3;
+}
+
+message RemovePermissionRequest {
+  string role_id = 1;
+  string permission_id = 2;
+  string client_id = 3;
+}
+
+message GetRolePermissionsRequest {
+  string role_id = 1;
+  string client_id = 2;
+  optional bool include_deleted = 3;
+}
+
+message PermissionAssignment {
+  string permission_id = 1;
+  string permission_code = 2;
+  string description = 3;
+  google.protobuf.Timestamp assigned_at = 4;
+}
+
+message GetRolePermissionsResponse {
+  repeated PermissionAssignment permissions = 1;
+}
+
+message GetRolesWithPermissionRequest {
+  string permission_id = 1;
+  string client_id = 2;
+  string app_id = 3;
+  optional int64 page_size = 4;
+  optional int64 page_token = 5;
+}
+
+message RolePermissionInfo {
+  string role_id = 1;
+  string role_name = 2;
+  string app_id = 3;
+  google.protobuf.Timestamp assigned_at = 4;
+}
+
+message GetRolesWithPermissionResponse {
+  repeated RolePermissionInfo roles = 1;
+  int64 next_page_token = 2;
+}
+
+message CheckRolePermissionRequest {
+  string role_id = 1;
+  string permission_id = 2;
+  string client_id = 3;
+}
+
+message CheckRolePermissionResponse {
+  bool has_permission = 1;
+}
+
+message UpdateRolePermissionsRequest {
+  string role_id = 1;
+  string client_id = 2;
+  repeated string permission_ids = 3;
+}

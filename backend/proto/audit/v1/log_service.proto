@@ -1,0 +1,78 @@
+syntax = "proto3";
+
+package audit.log_v1;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/struct.proto";
+import "google/protobuf/empty.proto";
+
+option go_package = "audit.log_v1";
+
+service AuditLogService {
+  // Запись события аудита
+  rpc LogEvent(LogEventRequest) returns (google.protobuf.Empty);
+  // Поиск событий аудита
+  rpc SearchEvents(SearchEventsRequest) returns (SearchEventsResponse);
+  // Получение события по ID
+  rpc GetEvent(GetEventRequest) returns (AuditEvent);
+}
+
+message LogEventRequest {
+  string action_code = 1;              // Код действия из справочника
+  string event_source = 2;             // Название сервиса-источника
+  string event_type = 3;               // Тип события (security, data, system)
+  string status = 4;                   // Результат (success, failed, denied)
+  string actor_id = 5;                 // ID инициатора
+  string client_id = 6;                // ID клиента/тенанта
+
+  // Целевые объекты (опциональные)
+  optional string target_user_id = 7;
+  optional string target_role_id = 8;
+  optional string target_permission_id = 9;
+
+  // Дополнительные данные
+  google.protobuf.Struct event_data = 10; // Гибкая структура данных
+  string ip_address = 11;              // IP адрес
+  string user_agent = 12;              // User-Agent
+}
+
+message SearchEventsRequest {
+  optional string action_code = 1;
+  optional string event_source = 2;
+  optional string event_type = 3;
+  optional string status = 4;
+  optional string actor_id = 5;
+  optional string client_id = 6;
+  optional string target_entity_id = 7;
+  optional google.protobuf.Timestamp from_date = 8;
+  optional google.protobuf.Timestamp to_date = 9;
+  optional int32 page_size = 10;
+  optional string page_token = 11;
+}
+
+message AuditEvent {
+  int64 id = 1;
+  string action_code = 2;
+  string action_description = 3;
+  string event_source = 4;
+  string event_type = 5;
+  string status = 6;
+  string actor_id = 7;
+  string client_id = 8;
+  optional string target_user_id = 9;
+  optional string target_role_id = 10;
+  optional string target_permission_id = 11;
+  google.protobuf.Struct event_data = 12;
+  string ip_address = 13;
+  string user_agent = 14;
+  google.protobuf.Timestamp created_at = 15;
+}
+
+message SearchEventsResponse {
+  repeated AuditEvent events = 1;
+  string next_page_token = 2;
+}
+
+message GetEventRequest {
+  int64 id = 1;
+}

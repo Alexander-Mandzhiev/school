@@ -5,7 +5,7 @@ CREATE TABLE permissions (
     internal_id BIGSERIAL NOT NULL,
     code VARCHAR(50) NOT NULL CHECK (code <> ''),
     description TEXT NOT NULL,
-    category VARCHAR(50),
+    category VARCHAR(255) NOT NULL,
     app_id UUID NOT NULL,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,

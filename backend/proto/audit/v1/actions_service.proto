@@ -1,0 +1,45 @@
+syntax = "proto3";
+
+package audit.actions_v1;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+
+option go_package = "audit.actions_v1";
+
+service AuditActionsService {
+  rpc CreateAction(CreateActionRequest) returns (Action);
+  rpc GetActionByCode(GetActionByCodeRequest) returns (Action);
+  rpc GetActionById(GetActionByIdRequest) returns (Action);
+  rpc ListActions(ListActionsRequest) returns (ListActionsResponse);
+}
+
+message Action {
+  int32 id = 1;
+  string code = 2;
+  string description = 3;
+  google.protobuf.Timestamp created_at = 4;
+}
+
+message CreateActionRequest {
+  string code = 1;
+  string description = 2;
+}
+
+message GetActionByCodeRequest {
+  string code = 1;
+}
+
+message GetActionByIdRequest {
+  int32 id = 1;
+}
+
+message ListActionsRequest {
+  optional int32 page_size = 1;
+  optional int32 page_token = 2;
+}
+
+message ListActionsResponse {
+  repeated Action actions = 1;
+  int32 next_page_token = 2;
+}
