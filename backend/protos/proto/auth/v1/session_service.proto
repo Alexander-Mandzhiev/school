@@ -1,0 +1,57 @@
+syntax = "proto3";
+
+package sessions.v1;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+
+option go_package = "sessions.v1";
+
+service SessionsService {
+  rpc GetSession(SessionRequest) returns (Session);
+  rpc UpdateActivity(UpdateActivityRequest) returns (Session);
+  rpc RevokeSession(SessionRequest) returns (Session);
+  rpc ListSessions(ListSessionsRequest) returns (ListSessionsResponse);
+  rpc ListUserSessions(ListUserSessionsRequest) returns (ListSessionsResponse);
+}
+
+message Session {
+  string id = 1;
+  string user_id = 2;
+  string client_app_id = 3;
+  string user_agent = 4;
+  string ip_address = 5;
+  google.protobuf.Timestamp created_at = 6;
+  google.protobuf.Timestamp last_activity_at = 7;
+  google.protobuf.Timestamp expires_at = 8;
+  google.protobuf.Timestamp revoked_at = 9;
+}
+
+
+message UpdateActivityRequest {
+  string id = 1;
+}
+
+message SessionRequest {
+  string id = 1;
+}
+
+message ListSessionsRequest {
+  optional string user_id = 1;
+  optional string client_app_id = 2;
+  optional bool active_only = 3;
+  optional int32 page_size = 4;
+  optional string page_token = 5;
+}
+
+message ListUserSessionsRequest {
+  string user_id = 1;
+  optional bool active_only = 2;
+  optional int32 page_size = 3;
+  optional string page_token = 4;
+}
+
+message ListSessionsResponse {
+  repeated Session sessions = 1;
+  string next_page_token = 2;
+}

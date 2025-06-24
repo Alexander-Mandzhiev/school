@@ -20,7 +20,13 @@ INSERT INTO audit_actions (code, description) VALUES
     ('PERMISSION_DELETED', 'Permission deleted'),
     ('USER_REGISTERED', 'User registered'),
     ('USER_UPDATED', 'User updated'),
-    ('USER_DELETED', 'User deleted');
+    ('USER_DELETED', 'User deleted'),
+    ('SECRET_ROTATED', 'Secret rotation performed'),
+    ('AUTH_ATTEMPT', 'Authentication attempt'),
+    ('TOKEN_REVOKED', 'Token revocation'),
+    ('SESSION_CREATED', 'New session started'),
+    ('SESSION_REVOKED', 'Session revoked'),
+    ('PASSWORD_CHANGED', 'User password changed');
 -- +goose StatementEnd
 
 -- +goose Down

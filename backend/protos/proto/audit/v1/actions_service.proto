@@ -35,8 +35,8 @@ message GetActionByIdRequest {
 }
 
 message ListActionsRequest {
-  optional int32 page_size = 1;
-  optional int32 page_token = 2;
+  int32 page_size = 1;
+  int32 page_token = 2;
 }
 
 message ListActionsResponse {

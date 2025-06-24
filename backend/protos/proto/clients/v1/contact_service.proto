@@ -1,0 +1,68 @@
+syntax = "proto3";
+
+package contacts.v1;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+
+option go_package = "contacts.v1";
+
+service ContactsService {
+  rpc CreateContact(CreateContactRequest) returns (Contact);
+  rpc UpdateContact(UpdateContactRequest) returns (Contact);
+
+  rpc GetContact(GetContactRequest) returns (Contact);
+  rpc ListContactsByClient(ListContactsByClientRequest) returns (ListContactsResponse);
+
+  rpc SoftDeleteContact(DeleteContactRequest) returns (google.protobuf.Empty);
+  rpc HardDeleteContact(DeleteContactRequest) returns (google.protobuf.Empty);
+  rpc RestoreContact(DeleteContactRequest) returns (google.protobuf.Empty);
+}
+
+message Contact {
+  string id = 1;
+  string client_id = 2;
+  string full_name = 3;
+  optional string position = 4;
+  optional string email = 5;
+  optional string phone = 6;
+  google.protobuf.Timestamp created_at = 7;
+  google.protobuf.Timestamp updated_at = 8;
+  google.protobuf.Timestamp deleted_at = 9;
+}
+
+message CreateContactRequest {
+  string client_id = 1;
+  string full_name = 2;
+  optional string position = 3;
+  optional string email = 4;
+  optional string phone = 5;
+}
+
+message GetContactRequest {
+  string id = 1;
+}
+
+message UpdateContactRequest {
+  string id = 1;
+  optional string full_name = 2;
+  optional string position = 3;
+  optional string email = 4;
+  optional string phone = 5;
+}
+
+message DeleteContactRequest {
+  string id = 1;
+}
+
+message ListContactsByClientRequest {
+  string client_id = 1;
+  optional bool include_deleted = 2;
+  optional int32 page_size = 3;
+  optional string page_token = 4;
+}
+
+message ListContactsResponse {
+  repeated Contact contacts = 1;
+  string next_page_token = 2;
+}

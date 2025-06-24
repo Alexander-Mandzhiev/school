@@ -1,0 +1,67 @@
+syntax = "proto3";
+
+package clients.v1;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+
+option go_package = "clients.v1";
+
+service ClientsService {
+  rpc CreateClient(CreateClientRequest) returns (Client);
+  rpc UpdateClient(UpdateClientRequest) returns (Client);
+
+  rpc GetClient(GetClientRequest) returns (Client);
+  rpc ListClients(ListClientsRequest) returns (ListClientsResponse);
+
+  rpc SoftDeleteClient(DeleteClientRequest) returns (google.protobuf.Empty);
+  rpc HardDeleteClient(DeleteClientRequest) returns (google.protobuf.Empty);
+  rpc RestoreClient(DeleteClientRequest) returns (google.protobuf.Empty);
+}
+
+message Client {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  int32 type_id = 4;
+  string website = 5;
+  google.protobuf.Timestamp created_at = 6;
+  google.protobuf.Timestamp updated_at = 7;
+  google.protobuf.Timestamp deleted_at = 8;
+}
+
+message CreateClientRequest {
+  string name = 1;
+  string description = 2;
+  int32 type_id = 3;
+  string website = 4;
+}
+
+message GetClientRequest {
+  string id = 1;
+}
+
+message UpdateClientRequest {
+  string id = 1;
+  optional string name = 2;
+  optional string description = 3;
+  optional int32 type_id = 4;
+  optional string website = 5;
+}
+
+message DeleteClientRequest {
+  string id = 1;
+}
+
+message ListClientsRequest {
+  optional string name_filter = 1;
+  optional int32 type_id = 2;
+  optional bool include_deleted = 3;
+  optional int32 page_size = 4;
+  optional string page_token = 5;
+}
+
+message ListClientsResponse {
+  repeated Client clients = 1;
+  string next_page_token = 2;
+}

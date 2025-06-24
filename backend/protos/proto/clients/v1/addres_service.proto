@@ -1,0 +1,84 @@
+syntax = "proto3";
+
+package addresses.v1;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+
+option go_package = "addresses.v1";
+
+service AddressesService {
+  rpc CreateAddress(CreateAddressRequest) returns (Address);
+  rpc UpdateAddress(UpdateAddressRequest) returns (Address);
+
+  rpc GetAddress(GetAddressRequest) returns (Address);
+  rpc ListAddressesByClient(ListAddressesByClientRequest) returns (ListAddressesResponse);
+
+  rpc DeleteAddress(DeleteAddressRequest) returns (google.protobuf.Empty);
+
+}
+
+message Address {
+  string id = 1;
+  string client_id = 2;
+  string country = 3;
+  string region = 4;
+  string city = 5;
+  string district = 6;
+  string micro_district = 7;
+  string street = 8;
+  string house_number = 9;
+  string apartment = 10;
+  string postal_code = 11;
+  google.protobuf.Timestamp latitude = 12;
+  google.protobuf.Timestamp longitude = 13;
+}
+
+message CreateAddressRequest {
+  string client_id = 1;
+  string country = 2;
+  string city = 3;
+  string street = 4;
+  string house_number = 5;
+  optional string region = 6;
+  optional string district = 7;
+  optional string micro_district = 8;
+  optional string apartment = 9;
+  optional string postal_code = 10;
+  optional double latitude = 11;
+  optional double longitude = 12;
+}
+
+message GetAddressRequest {
+  string id = 1;
+}
+
+message UpdateAddressRequest {
+  string id = 1;
+  optional string country = 2;
+  optional string region = 3;
+  optional string city = 4;
+  optional string district = 5;
+  optional string micro_district = 6;
+  optional string street = 7;
+  optional string house_number = 8;
+  optional string apartment = 9;
+  optional string postal_code = 10;
+  optional double latitude = 11;
+  optional double longitude = 12;
+}
+
+message DeleteAddressRequest {
+  string id = 1;
+}
+
+message ListAddressesByClientRequest {
+  string client_id = 1;
+  optional int32 page_size = 2;
+  optional string page_token = 3;
+}
+
+message ListAddressesResponse {
+  repeated Address addresses = 1;
+  string next_page_token = 2;
+}

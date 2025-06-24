@@ -1,0 +1,68 @@
+syntax = "proto3";
+
+package client_apps.v1;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+
+option go_package = "client_apps.v1";
+
+service ClientAppsService {
+  rpc CreateClientApp(CreateClientAppRequest) returns (ClientApp);
+  rpc UpdateClientApp(UpdateClientAppRequest) returns (ClientApp);
+
+  rpc GetClientApp(GetClientAppRequest) returns (ClientApp);
+  rpc ListClientAppsByClient(ListByClientRequest) returns (ListClientAppsResponse);
+  rpc ListClientAppsByApp(ListByAppRequest) returns (ListClientAppsResponse);
+
+  rpc SoftDeleteClientApp(DeleteClientAppRequest) returns (google.protobuf.Empty);
+  rpc HardDeleteClientApp(DeleteClientAppRequest) returns (google.protobuf.Empty);
+  rpc RestoreClientApp(DeleteClientAppRequest) returns (google.protobuf.Empty);
+}
+
+message ClientApp {
+  string id = 1;
+  string client_id = 2;
+  int32 app_id = 3;
+  google.protobuf.Timestamp created_at = 4;
+  google.protobuf.Timestamp updated_at = 5;
+  google.protobuf.Timestamp deleted_at = 6;
+}
+
+message CreateClientAppRequest {
+  string client_id = 1;
+  int32 app_id = 2;
+}
+
+message GetClientAppRequest {
+  string id = 1;
+}
+
+message UpdateClientAppRequest {
+  string id = 1;
+  optional string client_id = 2;
+  optional int32 app_id = 3;
+}
+
+message DeleteClientAppRequest {
+  string id = 1;
+}
+
+message ListByClientRequest {
+  string client_id = 1;
+  optional bool include_deleted = 2;
+  optional int32 page_size = 3;
+  optional string page_token = 4;
+}
+
+message ListByAppRequest {
+  int32 app_id = 1;
+  optional bool include_deleted = 2;
+  optional int32 page_size = 3;
+  optional string page_token = 4;
+}
+
+message ListClientAppsResponse {
+  repeated ClientApp client_apps = 1;
+  string next_page_token = 2;
+}
