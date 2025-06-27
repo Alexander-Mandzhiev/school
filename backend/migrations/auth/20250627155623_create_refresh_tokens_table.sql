@@ -7,11 +7,15 @@ CREATE TABLE refresh_tokens (
     issued_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     expires_at TIMESTAMPTZ NOT NULL,
     revoked_at TIMESTAMPTZ,
-    replaced_by_jti UUID REFERENCES refresh_tokens(jti)  -- Для отслеживания ротации
+    replaced_by_jti UUID REFERENCES refresh_tokens(jti),
+    user_agent TEXT,
+    ip_address INET,
+    scope JSONB,
+    CONSTRAINT check_expires_after_issued CHECK (expires_at > issued_at)
 );
 
--- Индексы для быстрого поиска
 CREATE INDEX idx_refresh_tokens_user_client ON refresh_tokens(user_id, client_app_id);
+CREATE INDEX idx_refresh_tokens_active ON refresh_tokens(user_id, client_app_id) WHERE revoked_at IS NULL;
 CREATE INDEX idx_refresh_tokens_revoked ON refresh_tokens(revoked_at);
 CREATE INDEX idx_refresh_tokens_issued ON refresh_tokens(issued_at);
 -- +goose StatementEnd

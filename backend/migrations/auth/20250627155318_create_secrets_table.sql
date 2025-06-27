@@ -12,7 +12,6 @@ CREATE TABLE secrets (
     revoked_at TIMESTAMPTZ
 );
 
--- Индексы для курсорной пагинации и поиска
 CREATE INDEX idx_secrets_internal_id ON secrets(internal_id);
 CREATE INDEX idx_secrets_active ON secrets(client_app_id, secret_type) WHERE revoked_at IS NULL;
 CREATE INDEX idx_secrets_revoked ON secrets(revoked_at);

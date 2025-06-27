@@ -20,5 +20,5 @@ CREATE INDEX idx_contacts_deleted ON contacts(deleted_at);
 
 -- +goose Down
 -- +goose StatementBegin
-DROP TABLE IF EXISTS contacts;
+DROP TABLE IF EXISTS contacts CASCADE;
 -- +goose StatementEnd

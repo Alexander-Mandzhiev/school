@@ -26,5 +26,5 @@ CREATE INDEX idx_addresses_postal ON addresses(postal_code);
 
 -- +goose Down
 -- +goose StatementBegin
-DROP TABLE IF EXISTS addresses;
+DROP TABLE IF EXISTS addresses CASCADE;
 -- +goose StatementEnd
