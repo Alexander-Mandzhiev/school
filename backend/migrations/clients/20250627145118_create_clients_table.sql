@@ -5,14 +5,15 @@ CREATE TABLE clients (
     name VARCHAR(255) NOT NULL,
     description TEXT NOT NULL,
     type_id INT NOT NULL REFERENCES client_types(id) ON DELETE CASCADE,
+    status_id INT NOT NULL REFERENCES client_statuses(id) DEFAULT 1,
     website VARCHAR(255) NOT NULL,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     deleted_at TIMESTAMPTZ
 );
 
--- Оптимальные индексы
 CREATE INDEX idx_clients_type ON clients(type_id);
+CREATE INDEX idx_clients_status ON clients(status_id);
 CREATE INDEX idx_clients_deleted ON clients(deleted_at);
 CREATE INDEX idx_clients_created ON clients(created_at);
 -- +goose StatementEnd

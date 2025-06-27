@@ -12,7 +12,6 @@ CREATE TABLE contacts (
     deleted_at TIMESTAMPTZ
 );
 
--- Оптимизированные индексы
 CREATE INDEX idx_contacts_client ON contacts(client_id);
 CREATE INDEX idx_contacts_email ON contacts(email) WHERE email IS NOT NULL;
 CREATE INDEX idx_contacts_phone ON contacts(phone) WHERE phone IS NOT NULL;

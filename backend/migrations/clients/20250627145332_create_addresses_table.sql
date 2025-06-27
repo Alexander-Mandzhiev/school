@@ -13,10 +13,12 @@ CREATE TABLE addresses (
     apartment VARCHAR(20),
     postal_code VARCHAR(20),
     latitude DOUBLE PRECISION,
-    longitude DOUBLE PRECISION
+    longitude DOUBLE PRECISION,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMPTZ
 );
 
--- Композитные индексы
 CREATE INDEX idx_addresses_client ON addresses(client_id);
 CREATE INDEX idx_addresses_location ON addresses(country, city);
 CREATE INDEX idx_addresses_postal ON addresses(postal_code);
