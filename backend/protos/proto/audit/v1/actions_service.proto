@@ -4,42 +4,95 @@ package audit.actions_v1;
 
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/empty.proto";
+import "google/api/annotations.proto";
+import "validate/validate.proto";
 
 option go_package = "audit.actions_v1";
 
 service AuditActionsService {
-  rpc CreateAction(CreateActionRequest) returns (Action);
-  rpc GetActionByCode(GetActionByCodeRequest) returns (Action);
-  rpc GetActionById(GetActionByIdRequest) returns (Action);
-  rpc ListActions(ListActionsRequest) returns (ListActionsResponse);
+  rpc CreateAction(CreateActionRequest) returns (Action) {
+    option (google.api.http) = {
+      post: "/v1/audit-actions"
+      body: "*"
+    };
+  }
+  rpc GetActionByCode(GetActionByCodeRequest) returns (Action) {
+    option (google.api.http) = {
+      get: "/v1/audit-actions/code/{code}"
+    };
+  }
+  rpc GetActionById(GetActionByIdRequest) returns (Action) {
+    option (google.api.http) = {
+      get: "/v1/audit-actions/{id}"
+    };
+  }
+  rpc ListActions(ListActionsRequest) returns (ListActionsResponse) {
+    option (google.api.http) = {
+      get: "/v1/audit-actions"
+    };
+  }
 }
 
 message Action {
   int32 id = 1;
-  string code = 2;
-  string description = 3;
-  google.protobuf.Timestamp created_at = 4;
+  string code = 2 [(validate.rules).string = {
+    min_len: 1,
+    max_len: 50,
+    pattern: "^[A-Z_]+$"
+  }];
+  string description = 3 [(validate.rules).string = {
+    min_len: 1,
+    max_len: 500
+  }];
+  string category = 4 [(validate.rules).string = {
+    min_len: 1,
+    max_len: 50
+  }];
+  string severity = 5 [(validate.rules).string = {
+    in: ["info", "warning", "error", "critical"]
+  }];
+  google.protobuf.Timestamp created_at = 6;
 }
 
 message CreateActionRequest {
-  string code = 1;
-  string description = 2;
+  string code = 1 [(validate.rules).string = {
+    min_len: 1,
+    max_len: 50,
+    pattern: "^[A-Z_]+$"
+  }];
+  string description = 2 [(validate.rules).string = {
+    min_len: 1,
+    max_len: 500
+  }];
+  string category = 3 [(validate.rules).string = {
+    min_len: 1,
+    max_len: 50
+  }];
+  string severity = 4 [(validate.rules).string = {
+    in: ["info", "warning", "error", "critical"]
+  }];
 }
 
 message GetActionByCodeRequest {
-  string code = 1;
+  string code = 1 [(validate.rules).string = {
+    min_len: 1,
+    max_len: 50,
+    pattern: "^[A-Z_]+$"
+  }];
 }
 
 message GetActionByIdRequest {
-  int32 id = 1;
+  int32 id = 1 [(validate.rules).int32.gt = 0];
 }
 
 message ListActionsRequest {
-  int32 page_size = 1;
-  int32 page_token = 2;
+  optional string category = 1 [(validate.rules).string.max_len = 50];
+  optional string severity = 2 [(validate.rules).string = {
+    in: ["info", "warning", "error", "critical"]
+  }];
+  optional string filter = 3 [(validate.rules).string.max_len = 200];
 }
 
 message ListActionsResponse {
   repeated Action actions = 1;
-  int32 next_page_token = 2;
 }

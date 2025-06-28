@@ -4,68 +4,117 @@ package audit.logs.v1;
 
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/struct.proto";
+import "google/api/annotations.proto";
+import "validate/validate.proto";
 
 option go_package = "audit.logs.v1";
 
-service AuditLogService {
-  // Создание записи аудита
-  rpc CreateLog(CreateLogRequest) returns (Log);
-  // Поиск записей аудита
-  rpc SearchLogs(SearchLogsRequest) returns (SearchLogsResponse);
-  // Получение записи по ID
-  rpc GetLog(GetLogRequest) returns (Log);
+service LogsService {
+  rpc CreateLog(CreateLogRequest) returns (Log) {
+    option (google.api.http) = {
+      post: "/v1/audit-logs"
+      body: "*"
+    };
+  }
+  rpc SearchLogs(SearchLogsRequest) returns (SearchLogsResponse) {
+    option (google.api.http) = {
+      post: "/v1/audit-logs/search"
+      body: "*"
+    };
+  }
+  rpc GetLog(GetLogRequest) returns (Log) {
+    option (google.api.http) = {
+      get: "/v1/audit-logs/{log_id}"
+    };
+  }
 }
 
 message Log {
   int64 id = 1;
-  int32 action_id = 2;
-  string event_source = 3;
-  string event_type = 4;
-  string status = 5;
-  string actor_id = 6;       // UUID в формате string
-  string target_id = 7;      // UUID в формате string
-  string client_id = 8;      // UUID в формате string
-  string ip_address = 9;     // IP в формате string "192.168.1.1"
-  string user_agent = 10;
-  google.protobuf.Struct event_data = 11;
-  google.protobuf.Timestamp created_at = 12;
+  int64 internal_id = 2;
+  int32 action_id = 3 [(validate.rules).int32.gt = 0];
+  string event_source = 4 [(validate.rules).string = {
+    min_len: 1,
+    max_len: 50
+  }];
+  string event_type = 5 [(validate.rules).string = {
+    min_len: 1,
+    max_len: 20
+  }];
+  string status = 6 [(validate.rules).string = {
+    min_len: 1,
+    max_len: 20
+  }];
+  optional string actor_id = 7 [(validate.rules).string = {
+    pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+  }];
+  optional string target_id = 8 [(validate.rules).string = {
+    pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+  }];
+  string client_id = 9 [(validate.rules).string = {
+    pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+  }];
+  optional string ip_address = 10;
+  optional string user_agent = 11;
+  google.protobuf.Struct event_data = 12;
+  google.protobuf.Timestamp created_at = 13;
 }
 
 message CreateLogRequest {
-  int32 action_id = 1;
-  string event_source = 2;
-  string event_type = 3;
-  string status = 4;
-  string actor_id = 5;
-  string target_id = 6;
-  string client_id = 7;
-  string ip_address = 8;
-  string user_agent = 9;
+  int32 action_id = 1 [(validate.rules).int32.gt = 0];
+  string event_source = 2 [(validate.rules).string = {
+    min_len: 1,
+    max_len: 50
+  }];
+  string event_type = 3 [(validate.rules).string = {
+    min_len: 1,
+    max_len: 20
+  }];
+  string status = 4 [(validate.rules).string = {
+    min_len: 1,
+    max_len: 20
+  }];
+  optional string actor_id = 5 [(validate.rules).string = {
+    pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+  }];
+  optional string target_id = 6 [(validate.rules).string = {
+    pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+  }];
+  string client_id = 7 [(validate.rules).string = {
+    pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+  }];
+  optional string ip_address = 8;
+  optional string user_agent = 9;
   google.protobuf.Struct event_data = 10;
 }
 
 message GetLogRequest {
-  int64 log_id = 1;
+  int64 log_id = 1 [(validate.rules).int64.gt = 0];
 }
 
 message SearchLogsRequest {
-  optional int32 action_id = 1;
-  optional string event_source = 2;
-  optional string event_type = 3;
-  optional string status = 4;
-  optional string actor_id = 5;
-  optional string target_id = 6;
-  optional string client_id = 7;
+  optional int32 action_id = 1 [(validate.rules).int32.gt = 0];
+  optional string event_source = 2 [(validate.rules).string.max_len = 50];
+  optional string event_type = 3 [(validate.rules).string.max_len = 20];
+  optional string status = 4 [(validate.rules).string.max_len = 20];
+  optional string actor_id = 5 [(validate.rules).string = {
+    pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+  }];
+  optional string target_id = 6 [(validate.rules).string = {
+    pattern: "^[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+  }];
+  optional string client_id = 7 [(validate.rules).string = {
+    pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+  }];
   optional string ip_address = 8;
   optional google.protobuf.Struct event_data_filter = 9;
-  google.protobuf.Timestamp created_from = 10;
-  google.protobuf.Timestamp created_to = 11;
-
-  // Пагинация
-  int32 page_size = 12;
-  string page_token = 13;
-
-  // Сортировка
+  optional google.protobuf.Timestamp created_from = 10;
+  optional google.protobuf.Timestamp created_to = 11;
+  optional int32 page_size = 12 [(validate.rules).int32 = {
+    gte: 1,
+    lte: 100
+  }];
+  optional int64 page_token = 13;
   enum SortField {
     ID = 0;
     CREATED_AT = 1;
@@ -76,6 +125,6 @@ message SearchLogsRequest {
 
 message SearchLogsResponse {
   repeated Log logs = 1;
-  string next_page_token = 2;
+  int64 next_page_token = 2;
   int32 total_count = 3;
 }

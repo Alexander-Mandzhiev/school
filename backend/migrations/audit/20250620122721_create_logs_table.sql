@@ -2,6 +2,7 @@
 -- +goose StatementBegin
 CREATE TABLE logs (
     id BIGSERIAL PRIMARY KEY,
+    internal_id BIGSERIAL NOT NULL,
     action_id SMALLINT NOT NULL REFERENCES actions(id) ON DELETE RESTRICT,
     event_source VARCHAR(50) NOT NULL DEFAULT 'unknown',
     event_type VARCHAR(20) NOT NULL DEFAULT 'operational',
@@ -24,6 +25,7 @@ CREATE INDEX idx_logs_event_source ON logs(event_source);
 CREATE INDEX idx_logs_event_type ON logs(event_type);
 CREATE INDEX idx_logs_status ON logs(status);
 CREATE INDEX idx_logs_created_at_brin ON logs USING BRIN (created_at);
+CREATE INDEX idx_logs_internal_id ON logs(internal_id);
 -- +goose StatementEnd
 
 -- +goose Down
