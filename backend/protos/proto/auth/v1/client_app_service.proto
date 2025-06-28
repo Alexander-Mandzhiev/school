@@ -4,65 +4,129 @@ package client_apps.v1;
 
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/empty.proto";
+import "google/api/annotations.proto";
+import "validate/validate.proto";
 
 option go_package = "client_apps.v1";
 
 service ClientAppsService {
-  rpc CreateClientApp(CreateClientAppRequest) returns (ClientApp);
-  rpc UpdateClientApp(UpdateClientAppRequest) returns (ClientApp);
+  rpc CreateClientApp(CreateClientAppRequest) returns (ClientApp) {
+    option (google.api.http) = {
+      post: "/v1/client-apps"
+      body: "*"
+    };
+  }
+  rpc UpdateClientApp(UpdateClientAppRequest) returns (ClientApp) {
+    option (google.api.http) = {
+      put: "/v1/client-apps/{id}"
+      body: "*"
+    };
+  }
 
-  rpc GetClientApp(GetClientAppRequest) returns (ClientApp);
-  rpc ListClientAppsByClient(ListByClientRequest) returns (ListClientAppsResponse);
-  rpc ListClientAppsByApp(ListByAppRequest) returns (ListClientAppsResponse);
+  rpc GetClientApp(GetClientAppRequest) returns (ClientApp) {
+    option (google.api.http) = {
+      get: "/v1/client-apps/{id}"
+    };
+  }
+  rpc ListClientAppsByClient(ListByClientRequest) returns (ListClientAppsResponse) {
+    option (google.api.http) = {
+      get: "/v1/clients/{client_id}/client-apps"
+    };
+  }
+  rpc ListClientAppsByApp(ListByAppRequest) returns (ListClientAppsResponse) {
+    option (google.api.http) = {
+      get: "/v1/apps/{app_id}/client-apps"
+    };
+  }
 
-  rpc SoftDeleteClientApp(DeleteClientAppRequest) returns (google.protobuf.Empty);
-  rpc HardDeleteClientApp(DeleteClientAppRequest) returns (google.protobuf.Empty);
-  rpc RestoreClientApp(DeleteClientAppRequest) returns (google.protobuf.Empty);
+  rpc SoftDeleteClientApp(DeleteClientAppRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      delete: "/v1/client-apps/{id}"
+    };
+  }
+  rpc HardDeleteClientApp(DeleteClientAppRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      delete: "/v1/client-apps/{id}/hard"
+    };
+  }
+  rpc RestoreClientApp(RestoreClientAppRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      post: "/v1/client-apps/{id}/restore"
+      body: "*"
+    };
+  }
 }
 
 message ClientApp {
   string id = 1;
-  string client_id = 2;
-  int32 app_id = 3;
-  google.protobuf.Timestamp created_at = 4;
-  google.protobuf.Timestamp updated_at = 5;
-  google.protobuf.Timestamp deleted_at = 6;
+  string client_id = 2 [(validate.rules).string = {
+    pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+  }];
+  int32 app_id = 3 [(validate.rules).int32.gt = 0];
+  int32 status_id = 4 [(validate.rules).int32.gt = 0];
+  google.protobuf.Timestamp created_at = 5;
+  google.protobuf.Timestamp updated_at = 6;
+  optional google.protobuf.Timestamp deleted_at = 7;
 }
 
 message CreateClientAppRequest {
-  string client_id = 1;
-  int32 app_id = 2;
+  string client_id = 1 [(validate.rules).string = {
+    pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+  }];
+  int32 app_id = 2 [(validate.rules).int32.gt = 0];
+  int32 status_id = 3 [(validate.rules).int32.gt = 0];
 }
 
 message GetClientAppRequest {
-  string id = 1;
+  string id = 1 [(validate.rules).string = {
+    pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+  }];
+  optional bool include_deleted = 2;
 }
 
 message UpdateClientAppRequest {
-  string id = 1;
-  optional string client_id = 2;
-  optional int32 app_id = 3;
+  string id = 1 [(validate.rules).string = {
+    pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+  }];
+  optional int32 status_id = 2 [(validate.rules).int32.gt = 0];
 }
 
 message DeleteClientAppRequest {
-  string id = 1;
+  string id = 1 [(validate.rules).string = {
+    pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+  }];
+}
+
+message RestoreClientAppRequest {
+  string id = 1 [(validate.rules).string = {
+    pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+  }];
 }
 
 message ListByClientRequest {
-  string client_id = 1;
+  string client_id = 1 [(validate.rules).string = {
+    pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+  }];
   optional bool include_deleted = 2;
-  optional int32 page_size = 3;
+  optional int32 page_size = 3 [(validate.rules).int32 = {
+    gte: 1,
+    lte: 100
+  }];
   optional string page_token = 4;
 }
 
 message ListByAppRequest {
-  int32 app_id = 1;
+  int32 app_id = 1 [(validate.rules).int32.gt = 0];
   optional bool include_deleted = 2;
-  optional int32 page_size = 3;
+  optional int32 page_size = 3 [(validate.rules).int32 = {
+    gte: 1,
+    lte: 100
+  }];
   optional string page_token = 4;
 }
 
 message ListClientAppsResponse {
   repeated ClientApp client_apps = 1;
   string next_page_token = 2;
+  int32 total_size = 3;
 }

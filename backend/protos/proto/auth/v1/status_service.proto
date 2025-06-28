@@ -1,0 +1,131 @@
+syntax = "proto3";
+
+package auth.status.v1;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+import "google/api/annotations.proto";
+import "validate/validate.proto";
+
+option go_package = "auth.status.v1";
+
+service StatusService {
+  rpc CreateStatus(CreateStatusRequest) returns (Status) {
+    option (google.api.http) = {
+      post: "/v1/auth-statuses"
+      body: "*"
+    };
+  }
+  rpc UpdateStatus(UpdateStatusRequest) returns (Status) {
+    option (google.api.http) = {
+      put: "/v1/auth-statuses/{id}"
+      body: "*"
+    };
+  }
+
+  rpc GetStatus(GetStatusRequest) returns (Status) {
+    option (google.api.http) = {
+      get: "/v1/auth-statuses/{id}"
+    };
+  }
+  rpc GetStatusByCode(GetStatusByCodeRequest) returns (Status) {
+    option (google.api.http) = {
+      get: "/v1/auth-statuses/code/{code}"
+    };
+  }
+  rpc ListStatuses(ListStatusesRequest) returns (ListStatusesResponse) {
+    option (google.api.http) = {
+      get: "/v1/auth-statuses"
+    };
+  }
+
+  rpc SoftDeleteStatus(DeleteStatusRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      delete: "/v1/auth-statuses/{id}"
+    };
+  }
+  rpc HardDeleteStatus(DeleteStatusRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      delete: "/v1/auth-statuses/{id}/hard"
+    };
+  }
+  rpc RestoreStatus(RestoreStatusRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      post: "/v1/auth-statuses/{id}/restore"
+      body: "*"
+    };
+  }
+}
+
+message Status {
+  int32 id = 1;
+  string code = 2 [(validate.rules).string = {
+    min_len: 1,
+    max_len: 20,
+    pattern: "^[a-zA-Z0-9_-]+$"
+  }];
+  string name = 3 [(validate.rules).string = {
+    min_len: 1,
+    max_len: 50
+  }];
+  optional string description = 4 [(validate.rules).string.max_len = 500];
+  google.protobuf.Timestamp created_at = 5;
+  google.protobuf.Timestamp updated_at = 6;
+  optional google.protobuf.Timestamp deleted_at = 7;
+}
+
+message CreateStatusRequest {
+  string code = 1 [(validate.rules).string = {
+    min_len: 1,
+    max_len: 20,
+    pattern: "^[a-zA-Z0-9_-]+$"
+  }];
+  string name = 2 [(validate.rules).string = {
+    min_len: 1,
+    max_len: 50
+  }];
+  optional string description = 3 [(validate.rules).string.max_len = 500];
+}
+
+message GetStatusRequest {
+  int32 id = 1 [(validate.rules).int32.gt = 0];
+  optional bool include_deleted = 2;
+}
+
+message GetStatusByCodeRequest {
+  string code = 1 [(validate.rules).string = {
+    min_len: 1,
+    max_len: 20,
+    pattern: "^[a-zA-Z0-9_-]+$"
+  }];
+  optional bool include_deleted = 2;
+}
+
+message UpdateStatusRequest {
+  int32 id = 1 [(validate.rules).int32.gt = 0];
+  optional string name = 2 [(validate.rules).string = {
+    min_len: 1,
+    max_len: 50
+  }];
+  optional string description = 3 [(validate.rules).string.max_len = 500];
+}
+
+message DeleteStatusRequest {
+  int32 id = 1 [(validate.rules).int32.gt = 0];
+}
+
+message RestoreStatusRequest {
+  int32 id = 1 [(validate.rules).int32.gt = 0];
+}
+
+message ListStatusesRequest {
+  optional bool include_deleted = 1;
+  optional string filter = 2 [(validate.rules).string.max_len = 200];
+  optional string order_by = 3 [(validate.rules).string = {
+    in: ["id", "code", "name"]
+  }];
+}
+
+message ListStatusesResponse {
+  repeated Status statuses = 1;
+} 

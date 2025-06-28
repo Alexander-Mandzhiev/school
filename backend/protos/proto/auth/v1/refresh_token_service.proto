@@ -1,0 +1,133 @@
+syntax = "proto3";
+
+package refresh_tokens.v1;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+import "google/api/annotations.proto";
+import "validate/validate.proto";
+import "google/protobuf/struct.proto";
+
+option go_package = "refresh_tokens.v1";
+
+service RefreshTokensService {
+  rpc CreateRefreshToken(CreateRefreshTokenRequest) returns (RefreshToken) {
+    option (google.api.http) = {
+      post: "/v1/refresh-tokens"
+      body: "*"
+    };
+  }
+  rpc GetRefreshToken(GetRefreshTokenRequest) returns (RefreshToken) {
+    option (google.api.http) = {
+      get: "/v1/refresh-tokens/{jti}"
+    };
+  }
+  rpc ListRefreshTokens(ListRefreshTokensRequest) returns (ListRefreshTokensResponse) {
+    option (google.api.http) = {
+      get: "/v1/refresh-tokens"
+    };
+  }
+  rpc ListUserRefreshTokens(ListUserRefreshTokensRequest) returns (ListRefreshTokensResponse) {
+    option (google.api.http) = {
+      get: "/v1/users/{user_id}/refresh-tokens"
+    };
+  }
+  rpc RevokeRefreshToken(RevokeRefreshTokenRequest) returns (RefreshToken) {
+    option (google.api.http) = {
+      post: "/v1/refresh-tokens/{jti}/revoke"
+      body: "*"
+    };
+  }
+  rpc ReplaceRefreshToken(ReplaceRefreshTokenRequest) returns (RefreshToken) {
+    option (google.api.http) = {
+      post: "/v1/refresh-tokens/{jti}/replace"
+      body: "*"
+    };
+  }
+}
+
+message RefreshToken {
+  string jti = 1;
+  int64 internal_id = 2;
+  string user_id = 3 [(validate.rules).string = {
+    pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+  }];
+  string client_app_id = 4 [(validate.rules).string = {
+    pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+  }];
+  google.protobuf.Timestamp issued_at = 5;
+  google.protobuf.Timestamp expires_at = 6;
+  optional google.protobuf.Timestamp revoked_at = 7;
+  optional string replaced_by_jti = 8 [(validate.rules).string = {
+    pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+  }];
+  optional string user_agent = 9;
+  optional string ip_address = 10;
+  optional google.protobuf.Struct scope = 11;
+}
+
+message CreateRefreshTokenRequest {
+  string user_id = 1 [(validate.rules).string = {
+    pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+  }];
+  string client_app_id = 2 [(validate.rules).string = {
+    pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+  }];
+  google.protobuf.Timestamp expires_at = 3;
+  optional string user_agent = 4;
+  optional string ip_address = 5;
+  optional google.protobuf.Struct scope = 6;
+}
+
+message GetRefreshTokenRequest {
+  string jti = 1 [(validate.rules).string = {
+    pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+  }];
+  optional bool include_revoked = 2;
+}
+
+message ListRefreshTokensRequest {
+  optional string user_id = 1 [(validate.rules).string = {
+    pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+  }];
+  optional string client_app_id = 2 [(validate.rules).string = {
+    pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+  }];
+  optional bool active_only = 3;
+  optional int32 page_size = 4 [(validate.rules).int32 = {
+    gte: 1,
+    lte: 100
+  }];
+  optional int64 page_token = 5;
+}
+
+message ListUserRefreshTokensRequest {
+  string user_id = 1 [(validate.rules).string = {
+    pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+  }];
+  optional bool active_only = 2;
+  optional int32 page_size = 3 [(validate.rules).int32 = {
+    gte: 1,
+    lte: 100
+  }];
+  optional int64 page_token = 4;
+}
+
+message RevokeRefreshTokenRequest {
+  string jti = 1 [(validate.rules).string = {
+    pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+  }];
+}
+
+message ReplaceRefreshTokenRequest {
+  string jti = 1 [(validate.rules).string = {
+    pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+  }];
+  google.protobuf.Timestamp expires_at = 2;
+}
+
+message ListRefreshTokensResponse {
+  repeated RefreshToken refresh_tokens = 1;
+  int64 next_page_token = 2;
+  int32 total_size = 3;
+} 

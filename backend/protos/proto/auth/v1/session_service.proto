@@ -4,54 +4,104 @@ package sessions.v1;
 
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/empty.proto";
+import "google/api/annotations.proto";
+import "validate/validate.proto";
+import "google/protobuf/struct.proto";
 
 option go_package = "sessions.v1";
 
 service SessionsService {
-  rpc GetSession(SessionRequest) returns (Session);
-  rpc UpdateActivity(UpdateActivityRequest) returns (Session);
-  rpc RevokeSession(SessionRequest) returns (Session);
-  rpc ListSessions(ListSessionsRequest) returns (ListSessionsResponse);
-  rpc ListUserSessions(ListUserSessionsRequest) returns (ListSessionsResponse);
+  rpc GetSession(SessionRequest) returns (Session) {
+    option (google.api.http) = {
+      get: "/v1/sessions/{id}"
+    };
+  }
+  rpc UpdateActivity(UpdateActivityRequest) returns (Session) {
+    option (google.api.http) = {
+      post: "/v1/sessions/{id}/activity"
+      body: "*"
+    };
+  }
+  rpc RevokeSession(SessionRequest) returns (Session) {
+    option (google.api.http) = {
+      post: "/v1/sessions/{id}/revoke"
+      body: "*"
+    };
+  }
+  rpc ListSessions(ListSessionsRequest) returns (ListSessionsResponse) {
+    option (google.api.http) = {
+      get: "/v1/sessions"
+    };
+  }
+  rpc ListUserSessions(ListUserSessionsRequest) returns (ListSessionsResponse) {
+    option (google.api.http) = {
+      get: "/v1/users/{user_id}/sessions"
+    };
+  }
 }
 
 message Session {
   string id = 1;
-  string user_id = 2;
-  string client_app_id = 3;
-  string user_agent = 4;
-  string ip_address = 5;
-  google.protobuf.Timestamp created_at = 6;
-  google.protobuf.Timestamp last_activity_at = 7;
-  google.protobuf.Timestamp expires_at = 8;
-  google.protobuf.Timestamp revoked_at = 9;
+  int64 internal_id = 2;
+  string user_id = 3 [(validate.rules).string = {
+    pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+  }];
+  string client_app_id = 4 [(validate.rules).string = {
+    pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+  }];
+  string refresh_token_jti = 5 [(validate.rules).string = {
+    pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+  }];
+  optional string user_agent = 6;
+  optional string ip_address = 7;
+  optional google.protobuf.Struct scope = 8;
+  google.protobuf.Timestamp created_at = 9;
+  google.protobuf.Timestamp last_activity_at = 10;
+  optional google.protobuf.Timestamp expires_at = 11;
+  optional google.protobuf.Timestamp revoked_at = 12;
 }
 
-
 message UpdateActivityRequest {
-  string id = 1;
+  string id = 1 [(validate.rules).string = {
+    pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+  }];
 }
 
 message SessionRequest {
-  string id = 1;
+  string id = 1 [(validate.rules).string = {
+    pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+  }];
 }
 
 message ListSessionsRequest {
-  optional string user_id = 1;
-  optional string client_app_id = 2;
+  optional string user_id = 1 [(validate.rules).string = {
+    pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+  }];
+  optional string client_app_id = 2 [(validate.rules).string = {
+    pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+  }];
   optional bool active_only = 3;
-  optional int32 page_size = 4;
-  optional string page_token = 5;
+  optional int32 page_size = 4 [(validate.rules).int32 = {
+    gte: 1,
+    lte: 100
+  }];
+  optional int64 page_token = 5;
 }
 
 message ListUserSessionsRequest {
-  string user_id = 1;
+  string user_id = 1 [(validate.rules).string = {
+    pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+  }];
   optional bool active_only = 2;
-  optional int32 page_size = 3;
-  optional string page_token = 4;
+  optional int32 page_size = 3 [(validate.rules).int32 = {
+    gte: 1,
+    lte: 100
+  }];
+  optional int64 page_token = 4;
 }
 
 message ListSessionsResponse {
   repeated Session sessions = 1;
-  string next_page_token = 2;
+  int64 next_page_token = 2;
+  int32 total_size = 3;
 }
