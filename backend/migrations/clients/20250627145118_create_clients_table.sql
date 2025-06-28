@@ -2,6 +2,7 @@
 -- +goose StatementBegin
 CREATE TABLE clients (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    internal_id BIGSERIAL NOT NULL,
     name VARCHAR(255) NOT NULL,
     description TEXT NOT NULL,
     type_id INT NOT NULL REFERENCES types(id),

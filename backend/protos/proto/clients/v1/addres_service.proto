@@ -4,81 +4,152 @@ package addresses.v1;
 
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/empty.proto";
+import "google/api/annotations.proto";
+import "validate/validate.proto";
 
 option go_package = "addresses.v1";
 
 service AddressesService {
-  rpc CreateAddress(CreateAddressRequest) returns (Address);
-  rpc UpdateAddress(UpdateAddressRequest) returns (Address);
-
-  rpc GetAddress(GetAddressRequest) returns (Address);
-  rpc ListAddressesByClient(ListAddressesByClientRequest) returns (ListAddressesResponse);
-
-  rpc DeleteAddress(DeleteAddressRequest) returns (google.protobuf.Empty);
-
+  rpc CreateAddress(CreateAddressRequest) returns (Address) {
+    option (google.api.http) = {
+      post: "/v1/addresses"
+      body: "*"
+    };
+  }
+  rpc UpdateAddress(UpdateAddressRequest) returns (Address) {
+    option (google.api.http) = {
+      put: "/v1/addresses/{id}"
+      body: "*"
+    };
+  }
+  rpc GetAddress(GetAddressRequest) returns (Address) {
+    option (google.api.http) = {
+      get: "/v1/addresses/{id}"
+    };
+  }
+  rpc ListAddressesByClient(ListAddressesByClientRequest) returns (ListAddressesResponse) {
+    option (google.api.http) = {
+      get: "/v1/clients/{client_id}/addresses"
+    };
+  }
+  rpc DeleteAddress(DeleteAddressRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      delete: "/v1/addresses/{id}"
+    };
+  }
 }
 
 message Address {
   string id = 1;
-  string client_id = 2;
-  string country = 3;
-  string region = 4;
-  string city = 5;
-  string district = 6;
-  string micro_district = 7;
-  string street = 8;
-  string house_number = 9;
-  string apartment = 10;
-  string postal_code = 11;
-  google.protobuf.Timestamp latitude = 12;
-  google.protobuf.Timestamp longitude = 13;
+  string client_id = 2 [(validate.rules).string = {
+    pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+  }];
+  string country = 3 [(validate.rules).string = {
+    min_len: 1,
+    max_len: 100
+  }];
+  optional string region = 4 [(validate.rules).string.max_len = 100];
+  string city = 5 [(validate.rules).string = {
+    min_len: 1,
+    max_len: 100
+  }];
+  optional string district = 6 [(validate.rules).string.max_len = 100];
+  optional string micro_district = 7 [(validate.rules).string.max_len = 100];
+  string street = 8 [(validate.rules).string = {
+    min_len: 1,
+    max_len: 255
+  }];
+  string house_number = 9 [(validate.rules).string = {
+    min_len: 1,
+    max_len: 20
+  }];
+  optional string apartment = 10 [(validate.rules).string.max_len = 20];
+  optional string postal_code = 11 [(validate.rules).string.max_len = 20];
+  optional double latitude = 12;
+  optional double longitude = 13;
+  google.protobuf.Timestamp created_at = 14;
+  google.protobuf.Timestamp updated_at = 15;
+  optional google.protobuf.Timestamp deleted_at = 16;
 }
 
 message CreateAddressRequest {
-  string client_id = 1;
-  string country = 2;
-  string city = 3;
-  string street = 4;
-  string house_number = 5;
-  optional string region = 6;
-  optional string district = 7;
-  optional string micro_district = 8;
-  optional string apartment = 9;
-  optional string postal_code = 10;
+  string client_id = 1 [(validate.rules).string = {
+    pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+  }];
+  string country = 2 [(validate.rules).string = {
+    min_len: 1,
+    max_len: 100
+  }];
+  string city = 3 [(validate.rules).string = {
+    min_len: 1,
+    max_len: 100
+  }];
+  string street = 4 [(validate.rules).string = {
+    min_len: 1,
+    max_len: 255
+  }];
+  string house_number = 5 [(validate.rules).string = {
+    min_len: 1,
+    max_len: 20
+  }];
+  optional string region = 6 [(validate.rules).string.max_len = 100];
+  optional string district = 7 [(validate.rules).string.max_len = 100];
+  optional string micro_district = 8 [(validate.rules).string.max_len = 100];
+  optional string apartment = 9 [(validate.rules).string.max_len = 20];
+  optional string postal_code = 10 [(validate.rules).string.max_len = 20];
   optional double latitude = 11;
   optional double longitude = 12;
 }
 
 message GetAddressRequest {
-  string id = 1;
+  string id = 1 [(validate.rules).string = {
+    pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+  }];
+  optional bool include_deleted = 2;
 }
 
 message UpdateAddressRequest {
-  string id = 1;
-  optional string country = 2;
-  optional string region = 3;
-  optional string city = 4;
-  optional string district = 5;
-  optional string micro_district = 6;
-  optional string street = 7;
-  optional string house_number = 8;
-  optional string apartment = 9;
-  optional string postal_code = 10;
+  string id = 1 [(validate.rules).string = {
+    pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+  }];
+  optional string country = 2 [(validate.rules).string = {
+    min_len: 1,
+    max_len: 100
+  }];
+  optional string region = 3 [(validate.rules).string.max_len = 100];
+  optional string city = 4 [(validate.rules).string = {
+    min_len: 1,
+    max_len: 100
+  }];
+  optional string district = 5 [(validate.rules).string.max_len = 100];
+  optional string micro_district = 6 [(validate.rules).string.max_len = 100];
+  optional string street = 7 [(validate.rules).string = {
+    min_len: 1,
+    max_len: 255
+  }];
+  optional string house_number = 8 [(validate.rules).string = {
+    min_len: 1,
+    max_len: 20
+  }];
+  optional string apartment = 9 [(validate.rules).string.max_len = 20];
+  optional string postal_code = 10 [(validate.rules).string.max_len = 20];
   optional double latitude = 11;
   optional double longitude = 12;
 }
 
 message DeleteAddressRequest {
-  string id = 1;
+  string id = 1 [(validate.rules).string = {
+    pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+  }];
 }
 
 message ListAddressesByClientRequest {
-  string client_id = 1;
-  optional int32 page_size = 2;
-  optional string page_token = 3;
+  string client_id = 1 [(validate.rules).string = {
+    pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+  }];
+  optional bool include_deleted = 2;
 }
 
 message ListAddressesResponse {
   repeated Address addresses = 1;
-  string next_page_token = 2;
 }

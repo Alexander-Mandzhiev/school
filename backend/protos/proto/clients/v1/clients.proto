@@ -4,64 +4,140 @@ package clients.v1;
 
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/empty.proto";
+import "google/api/annotations.proto";
+import "validate/validate.proto";
 
 option go_package = "clients.v1";
 
 service ClientsService {
-  rpc CreateClient(CreateClientRequest) returns (Client);
-  rpc UpdateClient(UpdateClientRequest) returns (Client);
+  rpc CreateClient(CreateClientRequest) returns (Client) {
+    option (google.api.http) = {
+      post: "/v1/clients"
+      body: "*"
+    };
+  }
+  rpc UpdateClient(UpdateClientRequest) returns (Client) {
+    option (google.api.http) = {
+      put: "/v1/clients/{id}"
+      body: "*"
+    };
+  }
 
-  rpc GetClient(GetClientRequest) returns (Client);
-  rpc ListClients(ListClientsRequest) returns (ListClientsResponse);
+  rpc GetClient(GetClientRequest) returns (Client) {
+    option (google.api.http) = {
+      get: "/v1/clients/{id}"
+    };
+  }
+  rpc ListClients(ListClientsRequest) returns (ListClientsResponse) {
+    option (google.api.http) = {
+      get: "/v1/clients"
+    };
+  }
 
-  rpc SoftDeleteClient(DeleteClientRequest) returns (google.protobuf.Empty);
-  rpc HardDeleteClient(DeleteClientRequest) returns (google.protobuf.Empty);
-  rpc RestoreClient(DeleteClientRequest) returns (google.protobuf.Empty);
+  rpc SoftDeleteClient(DeleteClientRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      delete: "/v1/clients/{id}"
+    };
+  }
+  rpc HardDeleteClient(DeleteClientRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      delete: "/v1/clients/{id}/hard"
+    };
+  }
+  rpc RestoreClient(RestoreClientRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      post: "/v1/clients/{id}/restore"
+      body: "*"
+    };
+  }
 }
 
 message Client {
   string id = 1;
-  string name = 2;
-  string description = 3;
-  int32 type_id = 4;
-  string website = 5;
-  google.protobuf.Timestamp created_at = 6;
-  google.protobuf.Timestamp updated_at = 7;
-  google.protobuf.Timestamp deleted_at = 8;
+  int64 internal_id = 2;
+  string name = 3 [(validate.rules).string = {
+    min_len: 1,
+    max_len: 255
+  }];
+  optional string description = 4 [(validate.rules).string.max_len = 1000];
+  int32 type_id = 5 [(validate.rules).int32.gt = 0];
+  int32 status_id = 6 [(validate.rules).int32.gt = 0];
+  string website = 7 [(validate.rules).string = {
+    uri: true,
+    max_len: 255
+  }];
+  google.protobuf.Timestamp created_at = 8;
+  google.protobuf.Timestamp updated_at = 9;
+  optional google.protobuf.Timestamp deleted_at = 10;
 }
 
 message CreateClientRequest {
-  string name = 1;
-  string description = 2;
-  int32 type_id = 3;
-  string website = 4;
+  string name = 1 [(validate.rules).string = {
+    min_len: 1,
+    max_len: 255
+  }];
+  string description = 2 [(validate.rules).string.max_len = 1000];
+  int32 type_id = 3 [(validate.rules).int32.gt = 0];
+  int32 status_id = 4 [(validate.rules).int32.gt = 0];
+  string website = 5 [(validate.rules).string = {
+    uri: true,
+    max_len: 255
+  }];
 }
 
 message GetClientRequest {
-  string id = 1;
+  string id = 1 [(validate.rules).string = {
+    pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+  }];
+  optional bool include_deleted = 2;
 }
 
 message UpdateClientRequest {
-  string id = 1;
-  optional string name = 2;
-  optional string description = 3;
-  optional int32 type_id = 4;
-  optional string website = 5;
+  string id = 1 [(validate.rules).string = {
+    pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+  }];
+  optional string name = 2 [(validate.rules).string = {
+    min_len: 1,
+    max_len: 255
+  }];
+  optional string description = 3 [(validate.rules).string.max_len = 1000];
+  optional int32 type_id = 4 [(validate.rules).int32.gt = 0];
+  optional int32 status_id = 5 [(validate.rules).int32.gt = 0];
+  optional string website = 6 [(validate.rules).string = {
+    uri: true,
+    max_len: 255
+  }];
 }
 
 message DeleteClientRequest {
-  string id = 1;
+  string id = 1 [(validate.rules).string = {
+    pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+  }];
+}
+
+message RestoreClientRequest {
+  string id = 1 [(validate.rules).string = {
+    pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+  }];
 }
 
 message ListClientsRequest {
-  optional string name_filter = 1;
-  optional int32 type_id = 2;
-  optional bool include_deleted = 3;
-  optional int32 page_size = 4;
-  optional string page_token = 5;
+  optional string name_filter = 1 [(validate.rules).string.max_len = 200];
+  optional int32 type_id = 2 [(validate.rules).int32.gt = 0];
+  optional int32 status_id = 3 [(validate.rules).int32.gt = 0];
+  optional bool include_deleted = 4;
+  optional int32 page_size = 5 [(validate.rules).int32 = {
+    gte: 1,
+    lte: 100
+  }];
+  optional int64 page_token = 6;
+  optional string order_by = 7 [(validate.rules).string = {
+    in: ["id", "name", "created_at", "updated_at"]
+  }];
 }
 
 message ListClientsResponse {
   repeated Client clients = 1;
-  string next_page_token = 2;
+  int64 next_page_token = 2;
+  int32 total_size = 3;
 }

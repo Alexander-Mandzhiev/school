@@ -22,6 +22,7 @@ CREATE TABLE addresses (
 CREATE INDEX idx_addresses_client ON addresses(client_id);
 CREATE INDEX idx_addresses_location ON addresses(country, city);
 CREATE INDEX idx_addresses_postal ON addresses(postal_code);
+CREATE INDEX idx_addresses_deleted ON addresses(deleted_at);
 -- +goose StatementEnd
 
 -- +goose Down

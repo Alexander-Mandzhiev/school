@@ -1,0 +1,128 @@
+syntax = "proto3";
+
+package client.types.v1;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+import "google/api/annotations.proto";
+import "validate/validate.proto";
+
+option go_package = "client.types.v1";
+
+service TypesService {
+  rpc CreateClientType(CreateClientTypeRequest) returns (ClientType) {
+    option (google.api.http) = {
+      post: "/v1/client-types"
+      body: "*"
+    };
+  }
+  rpc UpdateClientType(UpdateClientTypeRequest) returns (ClientType) {
+    option (google.api.http) = {
+      put: "/v1/client-types/{id}"
+      body: "*"
+    };
+  }
+
+  rpc GetClientType(GetClientTypeRequest) returns (ClientType) {
+    option (google.api.http) = {
+      get: "/v1/client-types/{id}"
+    };
+  }
+  rpc GetClientTypeByCode(GetClientTypeByCodeRequest) returns (ClientType) {
+    option (google.api.http) = {
+      get: "/v1/client-types/code/{code}"
+    };
+  }
+  rpc ListClientTypes(ListClientTypesRequest) returns (ListClientTypesResponse) {
+    option (google.api.http) = {
+      get: "/v1/client-types"
+    };
+  }
+
+  rpc SoftDeleteClientType(DeleteClientTypeRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      delete: "/v1/client-types/{id}"
+    };
+  }
+  rpc HardDeleteClientType(DeleteClientTypeRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      delete: "/v1/client-types/{id}/hard"
+    };
+  }
+  rpc RestoreClientType(RestoreClientTypeRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      post: "/v1/client-types/{id}/restore"
+      body: "*"
+    };
+  }
+}
+
+message ClientType {
+  int32 id = 1;
+  string code = 2 [(validate.rules).string = {
+    min_len: 1,
+    max_len: 50,
+    pattern: "^[a-zA-Z0-9_-]+$"
+  }];
+  string name = 3 [(validate.rules).string = {
+    min_len: 1,
+    max_len: 100
+  }];
+  optional string description = 4 [(validate.rules).string.max_len = 500];
+}
+
+message CreateClientTypeRequest {
+  string code = 1 [(validate.rules).string = {
+    min_len: 1,
+    max_len: 50,
+    pattern: "^[a-zA-Z0-9_-]+$"
+  }];
+  string name = 2 [(validate.rules).string = {
+    min_len: 1,
+    max_len: 100
+  }];
+  optional string description = 3 [(validate.rules).string.max_len = 500];
+}
+
+message GetClientTypeRequest {
+  int32 id = 1 [(validate.rules).int32.gt = 0];
+  optional bool include_deleted = 2;
+}
+
+message GetClientTypeByCodeRequest {
+  string code = 1 [(validate.rules).string = {
+    min_len: 1,
+    max_len: 50,
+    pattern: "^[a-zA-Z0-9_-]+$"
+  }];
+  optional bool include_deleted = 2;
+}
+
+message UpdateClientTypeRequest {
+  int32 id = 1 [(validate.rules).int32.gt = 0];
+  optional string name = 2 [(validate.rules).string = {
+    min_len: 1,
+    max_len: 100
+  }];
+  optional string description = 3 [(validate.rules).string.max_len = 500];
+}
+
+message DeleteClientTypeRequest {
+  int32 id = 1 [(validate.rules).int32.gt = 0];
+}
+
+message RestoreClientTypeRequest {
+  int32 id = 1 [(validate.rules).int32.gt = 0];
+}
+
+message ListClientTypesRequest {
+  optional bool include_deleted = 1;
+  optional string filter = 2 [(validate.rules).string.max_len = 200];
+  optional string order_by = 3 [(validate.rules).string = {
+    in: ["id", "code", "name"]
+  }];
+}
+
+message ListClientTypesResponse {
+  repeated ClientType client_types = 1;
+}
