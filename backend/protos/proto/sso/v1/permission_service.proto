@@ -4,69 +4,160 @@ package sso.permission_v1;
 
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/empty.proto";
+import "google/api/annotations.proto";
+import "validate/validate.proto";
 
 option go_package = "sso.permission_v1";
 
 service PermissionService {
-  rpc CreatePermission(CreatePermissionRequest) returns (Permission);
-  rpc UpdatePermission(UpdatePermissionRequest) returns (Permission);
+  rpc CreatePermission(CreatePermissionRequest) returns (Permission) {
+    option (google.api.http) = {
+      post: "/v1/permissions"
+      body: "*"
+    };
+  }
+  rpc UpdatePermission(UpdatePermissionRequest) returns (Permission) {
+    option (google.api.http) = {
+      put: "/v1/permissions/{id}"
+      body: "*"
+    };
+  }
 
-  rpc GetPermission(GetPermissionRequest) returns (Permission);
-  rpc ListPermissions(ListPermissionsRequest) returns (ListPermissionsResponse);
+  rpc GetPermission(GetPermissionRequest) returns (Permission) {
+    option (google.api.http) = {
+      get: "/v1/permissions/{id}"
+    };
+  }
+  rpc GetPermissionByCode(GetPermissionByCodeRequest) returns (Permission) {
+    option (google.api.http) = {
+      get: "/v1/permissions/code/{code}"
+    };
+  }
+  rpc ListPermissions(ListPermissionsRequest) returns (ListPermissionsResponse) {
+    option (google.api.http) = {
+      get: "/v1/permissions"
+    };
+  }
 
-  rpc HardDeletePermission(DeletePermissionRequest) returns (google.protobuf.Empty);
-  rpc SoftDeletePermission(DeletePermissionRequest) returns (google.protobuf.Empty);
-  rpc RestorePermission(DeletePermissionRequest) returns (google.protobuf.Empty);
+  rpc HardDeletePermission(DeletePermissionRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      delete: "/v1/permissions/{id}/hard"
+    };
+  }
+  rpc SoftDeletePermission(DeletePermissionRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      delete: "/v1/permissions/{id}"
+    };
+  }
+  rpc RestorePermission(RestorePermissionRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      post: "/v1/permissions/{id}/restore"
+      body: "*"
+    };
+  }
 }
 
 message Permission {
   string id = 1;
   int64 internal_id = 2;
-  string code = 3;
-  string description = 4;
-  string category = 5;
-  string app_id = 6;
+  string code = 3 [(validate.rules).string = {
+    min_len: 1,
+    max_len: 50,
+    pattern: "^[a-zA-Z0-9_.-]+$"
+  }];
+  string description = 4 [(validate.rules).string = {
+    min_len: 1,
+    max_len: 500
+  }];
+  string category = 5 [(validate.rules).string = {
+    min_len: 1,
+    max_len: 100
+  }];
+  int32 app_id = 6 [(validate.rules).int32.gt = 0];
   google.protobuf.Timestamp created_at = 7;
   google.protobuf.Timestamp updated_at = 8;
-  google.protobuf.Timestamp deleted_at = 9;
+  optional google.protobuf.Timestamp deleted_at = 9;
 }
 
 message CreatePermissionRequest {
-  string app_id = 1;
-  string code = 2;
-  string description = 3;
-  string category = 4;
+  int32 app_id = 1 [(validate.rules).int32.gt = 0];
+  string code = 2 [(validate.rules).string = {
+    min_len: 1,
+    max_len: 50,
+    pattern: "^[a-zA-Z0-9_.-]+$"
+  }];
+  string description = 3 [(validate.rules).string = {
+    min_len: 1,
+    max_len: 500
+  }];
+  string category = 4 [(validate.rules).string = {
+    min_len: 1,
+    max_len: 100
+  }];
 }
 
 message GetPermissionRequest {
-  oneof identifier {
-    string id = 1;
-    string code = 2;
-  }
-  string app_id = 3;
-  optional bool include_deleted = 4;
+  string id = 1 [(validate.rules).string = {
+    pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+  }];
+  optional bool include_deleted = 2;
+}
+
+message GetPermissionByCodeRequest {
+  string code = 1 [(validate.rules).string = {
+    min_len: 1,
+    max_len: 50,
+    pattern: "^[a-zA-Z0-9_.-]+$"
+  }];
+  int32 app_id = 2 [(validate.rules).int32.gt = 0];
+  optional bool include_deleted = 3;
 }
 
 message UpdatePermissionRequest {
-  string id = 1;
-  optional string description = 2;
-  optional string category = 3;
+  string id = 1 [(validate.rules).string = {
+    pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+  }];
+  optional string description = 2 [(validate.rules).string = {
+    min_len: 1,
+    max_len: 500
+  }];
+  optional string category = 3 [(validate.rules).string = {
+    min_len: 1,
+    max_len: 100
+  }];
 }
 
 message DeletePermissionRequest {
-  string id = 1;
-  string app_id = 2;
+  string id = 1 [(validate.rules).string = {
+    pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+  }];
+  int32 app_id = 2 [(validate.rules).int32.gt = 0];
+}
+
+message RestorePermissionRequest {
+  string id = 1 [(validate.rules).string = {
+    pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+  }];
+  int32 app_id = 2 [(validate.rules).int32.gt = 0];
 }
 
 message ListPermissionsRequest {
-  string app_id = 1;
-  optional int64 page_size = 2;
+  int32 app_id = 1 [(validate.rules).int32.gt = 0];
+  optional int32 page_size = 2 [(validate.rules).int32 = {
+    gte: 1,
+    lte: 100
+  }];
   optional int64 page_token = 3;
   optional bool include_deleted = 4;
-  optional string category = 5;
+  optional string category = 5 [(validate.rules).string.max_len = 100];
+  optional string filter = 6 [(validate.rules).string.max_len = 200];
+  optional string order_by = 7 [(validate.rules).string = {
+    in: ["id", "code", "category", "created_at", "updated_at"]
+  }];
 }
 
 message ListPermissionsResponse {
   repeated Permission permissions = 1;
   int64 next_page_token = 2;
+  int32 total_size = 3;
 }

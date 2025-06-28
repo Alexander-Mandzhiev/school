@@ -4,69 +4,146 @@ package sso.user_v1;
 
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/empty.proto";
+import "google/api/annotations.proto";
+import "validate/validate.proto";
 
 option go_package = "sso.user_v1";
 
 service UserService {
-  rpc CreateUser(CreateUserRequest) returns (User);
-  rpc UpdateUser(UpdateUserRequest) returns (User);
+  rpc CreateUser(CreateUserRequest) returns (User) {
+    option (google.api.http) = {
+      post: "/v1/users"
+      body: "*"
+    };
+  }
+  rpc UpdateUser(UpdateUserRequest) returns (User) {
+    option (google.api.http) = {
+      put: "/v1/users/{id}"
+      body: "*"
+    };
+  }
 
-  rpc GetUser(GetUserRequest) returns (User);
-  rpc ListUsers(ListUsersRequest) returns (ListUsersResponse);
+  rpc GetUser(GetUserRequest) returns (User) {
+    option (google.api.http) = {
+      get: "/v1/users/{id}"
+    };
+  }
+  rpc ListUsers(ListUsersRequest) returns (ListUsersResponse) {
+    option (google.api.http) = {
+      get: "/v1/users"
+    };
+  }
 
-  rpc HardDeleteUser(DeleteUserRequest) returns (google.protobuf.Empty);
-  rpc SoftDeleteUser(DeleteUserRequest) returns (google.protobuf.Empty);
-  rpc RestoreUser(DeleteUserRequest) returns (google.protobuf.Empty);
+  rpc HardDeleteUser(DeleteUserRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      delete: "/v1/users/{id}/hard"
+    };
+  }
+  rpc SoftDeleteUser(DeleteUserRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      delete: "/v1/users/{id}"
+    };
+  }
+  rpc RestoreUser(RestoreUserRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      post: "/v1/users/{id}/restore"
+      body: "*"
+    };
+  }
 }
 
 message User {
   string id = 1;
   int64 internal_id = 2;
-  string client_id = 3;
-  string email = 4;
+  string client_id = 3 [(validate.rules).string = {
+    pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+  }];
+  string email = 4 [(validate.rules).string = {
+    email: true,
+    max_len: 255
+  }];
   string password_hash = 5;
-  string full_name = 6;
-  string phone = 7;
+  optional string full_name = 6 [(validate.rules).string.max_len = 255];
+  optional string phone = 7 [(validate.rules).string = {
+    pattern: "^[+]?[0-9\\s\\-\\(\\)]{7,20}$",
+    max_len: 20
+  }];
   google.protobuf.Timestamp created_at = 8;
   google.protobuf.Timestamp updated_at = 9;
-  google.protobuf.Timestamp deleted_at = 10;
+  optional google.protobuf.Timestamp deleted_at = 10;
 }
 
 message CreateUserRequest {
-  string client_id = 1;
-  string email = 2;
-  string password = 3;
-  string full_name = 4;
-  string phone = 5;
+  string client_id = 1 [(validate.rules).string = {
+    pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+  }];
+  string email = 2 [(validate.rules).string = {
+    email: true,
+    max_len: 255
+  }];
+  string password = 3 [(validate.rules).string = {
+    min_len: 8,
+    max_len: 128
+  }];
+  optional string full_name = 4 [(validate.rules).string.max_len = 255];
+  optional string phone = 5 [(validate.rules).string = {
+    pattern: "^[+]?[0-9\\s\\-\\(\\)]{7,20}$",
+    max_len: 20
+  }];
 }
 
 message GetUserRequest {
-  string id = 1;
-  string client_id = 2;
+  string id = 1 [(validate.rules).string = {
+    pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+  }];
+  optional bool include_deleted = 2;
 }
 
 message UpdateUserRequest {
-  string id = 1;
-  string client_id = 2;
-  optional string email = 3;
-  optional string full_name = 4;
-  optional string phone = 5;
+  string id = 1 [(validate.rules).string = {
+    pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+  }];
+  optional string email = 2 [(validate.rules).string = {
+    email: true,
+    max_len: 255
+  }];
+  optional string full_name = 3 [(validate.rules).string.max_len = 255];
+  optional string phone = 4 [(validate.rules).string = {
+    pattern: "^[+]?[0-9\\s\\-\\(\\)]{7,20}$",
+    max_len: 20
+  }];
 }
 
 message DeleteUserRequest {
-  string id = 1;
-  string client_id = 2;
+  string id = 1 [(validate.rules).string = {
+    pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+  }];
+}
+
+message RestoreUserRequest {
+  string id = 1 [(validate.rules).string = {
+    pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+  }];
 }
 
 message ListUsersRequest {
-  string client_id = 1;
-  optional int64 page_size = 2;
+  string client_id = 1 [(validate.rules).string = {
+    pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+  }];
+  optional int32 page_size = 2 [(validate.rules).int32 = {
+    gte: 1,
+    lte: 100
+  }];
   optional int64 page_token = 3;
-  optional string filter = 4;
+  optional string filter = 4 [(validate.rules).string.max_len = 200];
   optional bool include_deleted = 5;
+  optional string order_by = 6 [(validate.rules).string = {
+    in: ["id", "email", "full_name", "created_at", "updated_at"]
+  }];
 }
 
 message ListUsersResponse {
   repeated User users = 1;
   int64 next_page_token = 2;
+  int32 total_size = 3;
 }

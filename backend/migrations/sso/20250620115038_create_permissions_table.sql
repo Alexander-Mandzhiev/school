@@ -6,7 +6,7 @@ CREATE TABLE permissions (
     code VARCHAR(50) NOT NULL CHECK (code <> ''),
     description TEXT NOT NULL,
     category VARCHAR(255) NOT NULL,
-    app_id UUID NOT NULL,
+    app_id INT NOT NULL,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     deleted_at TIMESTAMPTZ

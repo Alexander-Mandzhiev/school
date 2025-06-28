@@ -4,7 +4,7 @@ CREATE TABLE roles (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     internal_id BIGSERIAL NOT NULL,
     client_id UUID NOT NULL,
-    app_id UUID NOT NULL,
+    app_id INT NOT NULL,
     name VARCHAR(150) NOT NULL,
     description TEXT NOT NULL DEFAULT '',
     is_custom BOOLEAN NOT NULL DEFAULT TRUE,

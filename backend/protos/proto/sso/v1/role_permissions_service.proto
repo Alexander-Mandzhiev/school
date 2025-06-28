@@ -4,39 +4,76 @@ package sso.role_permissions_v1;
 
 import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
+import "google/api/annotations.proto";
+import "validate/validate.proto";
 
 option go_package = "sso.role_permissions_v1";
 
 service RolePermissionsService {
-  // Добавление разрешения к роли
-  rpc AddPermissionToRole(AddPermissionRequest) returns (google.protobuf.Empty);
-  // Удаление разрешения из роли
-  rpc RemovePermissionFromRole(RemovePermissionRequest) returns (google.protobuf.Empty);
-  // Массовое обновление разрешений для роли
-  rpc UpdateRolePermissions(UpdateRolePermissionsRequest) returns (google.protobuf.Empty);
-  // Проверка наличия разрешения у роли
-  rpc CheckRolePermission(CheckRolePermissionRequest) returns (CheckRolePermissionResponse);
+  rpc AddPermissionToRole(AddPermissionRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      post: "/v1/role-permissions"
+      body: "*"
+    };
+  }
+  rpc UpdateRolePermissions(UpdateRolePermissionsRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      put: "/v1/roles/{role_id}/permissions"
+      body: "*"
+    };
+  }
+
+  rpc RemovePermissionFromRole(RemovePermissionRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      delete: "/v1/role-permissions"
+      body: "*"
+    };
+  }
+  rpc CheckRolePermission(CheckRolePermissionRequest) returns (CheckRolePermissionResponse) {
+    option (google.api.http) = {
+      get: "/v1/role-permissions/check"
+    };
+  }
+  
   // Получение всех разрешений для роли
-  rpc GetRolePermissions(GetRolePermissionsRequest) returns (GetRolePermissionsResponse);
+  rpc GetRolePermissions(GetRolePermissionsRequest) returns (GetRolePermissionsResponse) {
+    option (google.api.http) = {
+      get: "/v1/roles/{role_id}/permissions"
+    };
+  }
   // Получение всех ролей, имеющих определенное разрешение
-  rpc GetRolesWithPermission(GetRolesWithPermissionRequest) returns (GetRolesWithPermissionResponse);
+  rpc GetRolesWithPermission(GetRolesWithPermissionRequest) returns (GetRolesWithPermissionResponse) {
+    option (google.api.http) = {
+      get: "/v1/permissions/{permission_id}/roles"
+    };
+  }
 }
 
 message AddPermissionRequest {
-  string role_id = 1;
-  string permission_id = 2;
-  string client_id = 3;
+  string role_id = 1 [(validate.rules).string = {
+    pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+  }];
+  string permission_id = 2 [(validate.rules).string = {
+    pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+  }];
+  int32 app_id = 3 [(validate.rules).int32.gt = 0];
 }
 
 message RemovePermissionRequest {
-  string role_id = 1;
-  string permission_id = 2;
-  string client_id = 3;
+  string role_id = 1 [(validate.rules).string = {
+    pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+  }];
+  string permission_id = 2 [(validate.rules).string = {
+    pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+  }];
+  int32 app_id = 3 [(validate.rules).int32.gt = 0];
 }
 
 message GetRolePermissionsRequest {
-  string role_id = 1;
-  string client_id = 2;
+  string role_id = 1 [(validate.rules).string = {
+    pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+  }];
+  int32 app_id = 2 [(validate.rules).int32.gt = 0];
   optional bool include_deleted = 3;
 }
 
@@ -52,29 +89,38 @@ message GetRolePermissionsResponse {
 }
 
 message GetRolesWithPermissionRequest {
-  string permission_id = 1;
-  string client_id = 2;
-  string app_id = 3;
-  optional int64 page_size = 4;
-  optional int64 page_token = 5;
+  string permission_id = 1 [(validate.rules).string = {
+    pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+  }];
+  int32 app_id = 2 [(validate.rules).int32.gt = 0];
+  optional int32 page_size = 3 [(validate.rules).int32 = {
+    gte: 1,
+    lte: 100
+  }];
+  optional int64 page_token = 4;
 }
 
 message RolePermissionInfo {
   string role_id = 1;
   string role_name = 2;
-  string app_id = 3;
+  int32 app_id = 3;
   google.protobuf.Timestamp assigned_at = 4;
 }
 
 message GetRolesWithPermissionResponse {
   repeated RolePermissionInfo roles = 1;
   int64 next_page_token = 2;
+  int32 total_size = 3;
 }
 
 message CheckRolePermissionRequest {
-  string role_id = 1;
-  string permission_id = 2;
-  string client_id = 3;
+  string role_id = 1 [(validate.rules).string = {
+    pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+  }];
+  string permission_id = 2 [(validate.rules).string = {
+    pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+  }];
+  int32 app_id = 3 [(validate.rules).int32.gt = 0];
 }
 
 message CheckRolePermissionResponse {
@@ -82,7 +128,11 @@ message CheckRolePermissionResponse {
 }
 
 message UpdateRolePermissionsRequest {
-  string role_id = 1;
-  string client_id = 2;
-  repeated string permission_ids = 3;
+  string role_id = 1 [(validate.rules).string = {
+    pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+  }];
+  int32 app_id = 2 [(validate.rules).int32.gt = 0];
+  repeated string permission_ids = 3 [(validate.rules).repeated.items.string = {
+    pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+  }];
 }

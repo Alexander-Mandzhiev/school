@@ -4,75 +4,141 @@ package sso.role_v1;
 
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/empty.proto";
+import "google/api/annotations.proto";
+import "validate/validate.proto";
 
 option go_package = "sso.role_v1";
 
 service RoleService {
-  rpc CreateRole(CreateRoleRequest) returns (Role);
-  rpc UpdateRole(UpdateRoleRequest) returns (Role);
+  rpc CreateRole(CreateRoleRequest) returns (Role) {
+    option (google.api.http) = {
+      post: "/v1/roles"
+      body: "*"
+    };
+  }
+  rpc UpdateRole(UpdateRoleRequest) returns (Role) {
+    option (google.api.http) = {
+      put: "/v1/roles/{id}"
+      body: "*"
+    };
+  }
 
-  rpc GetRole(GetRoleRequest) returns (Role);
-  rpc ListRoles(ListRolesRequest) returns (ListRolesResponse);
+  rpc GetRole(GetRoleRequest) returns (Role) {
+    option (google.api.http) = {
+      get: "/v1/roles/{id}"
+    };
+  }
+  rpc ListRoles(ListRolesRequest) returns (ListRolesResponse) {
+    option (google.api.http) = {
+      get: "/v1/roles"
+    };
+  }
 
-  rpc HardDeleteRole(DeleteRoleRequest) returns (google.protobuf.Empty);
-  rpc SoftDeleteRole(DeleteRoleRequest) returns (google.protobuf.Empty);
-  rpc RestoreRole(DeleteRoleRequest) returns (google.protobuf.Empty);
+  rpc HardDeleteRole(DeleteRoleRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      delete: "/v1/roles/{id}/hard"
+    };
+  }
+  rpc SoftDeleteRole(DeleteRoleRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      delete: "/v1/roles/{id}"
+    };
+  }
+  rpc RestoreRole(RestoreRoleRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      post: "/v1/roles/{id}/restore"
+      body: "*"
+    };
+  }
 }
 
 message Role {
   string id = 1;
   int64 internal_id = 2;
-  string client_id = 3;
-  string app_id = 4;
-  string name = 5;
-  string description = 6;
+  string client_id = 3 [(validate.rules).string = {
+    pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+  }];
+  int32 app_id = 4 [(validate.rules).int32.gt = 0];
+  string name = 5 [(validate.rules).string = {
+    min_len: 1,
+    max_len: 100
+  }];
+  optional string description = 6 [(validate.rules).string.max_len = 500];
   bool is_custom = 7;
-  string created_by = 8;
+  optional string created_by = 8 [(validate.rules).string = {
+    pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+  }];
   google.protobuf.Timestamp created_at = 9;
   google.protobuf.Timestamp updated_at = 10;
-  google.protobuf.Timestamp deleted_at = 11;
+  optional google.protobuf.Timestamp deleted_at = 11;
 }
 
 message CreateRoleRequest {
-  string client_id = 1;
-  string app_id = 2;
-  string name = 3;
-  string description = 4;
+  string client_id = 1 [(validate.rules).string = {
+    pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+  }];
+  int32 app_id = 2 [(validate.rules).int32.gt = 0];
+  string name = 3 [(validate.rules).string = {
+    min_len: 1,
+    max_len: 100
+  }];
+  optional string description = 4 [(validate.rules).string.max_len = 500];
   bool is_custom = 5;
-  optional string created_by = 6;
+  optional string created_by = 6 [(validate.rules).string = {
+    pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+  }];
 }
 
 message GetRoleRequest {
-  oneof identifier {
-    string id = 1;
-    string name = 2;
-  }
-  string client_id = 3;
-  string app_id = 4;
-  optional bool include_deleted = 5;
+  string id = 1 [(validate.rules).string = {
+    pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+  }];
+  optional bool include_deleted = 2;
 }
 
 message UpdateRoleRequest {
-  string id = 1;
-  optional string name = 2;
-  optional string description = 3;
+  string id = 1 [(validate.rules).string = {
+    pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+  }];
+  optional string name = 2 [(validate.rules).string = {
+    min_len: 1,
+    max_len: 100
+  }];
+  optional string description = 3 [(validate.rules).string.max_len = 500];
 }
 
 message DeleteRoleRequest {
-  string id = 1;
-  string client_id = 2;
+  string id = 1 [(validate.rules).string = {
+    pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+  }];
+}
+
+message RestoreRoleRequest {
+  string id = 1 [(validate.rules).string = {
+    pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+  }];
 }
 
 message ListRolesRequest {
-  string client_id = 1;
-  string app_id = 2;
-  optional int64 page_size = 3;
+  string client_id = 1 [(validate.rules).string = {
+    pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+  }];
+  int32 app_id = 2 [(validate.rules).int32.gt = 0];
+  optional int32 page_size = 3 [(validate.rules).int32 = {
+    gte: 1,
+    lte: 100
+  }];
   optional int64 page_token = 4;
   optional bool include_deleted = 5;
   optional bool include_system = 6;
+  optional string filter = 7 [(validate.rules).string.max_len = 200];
+  optional string order_by = 8 [(validate.rules).string = {
+    in: ["id", "name", "created_at", "updated_at"]
+  }];
 }
 
 message ListRolesResponse {
   repeated Role roles = 1;
   int64 next_page_token = 2;
+  int32 total_size = 3;
 }
